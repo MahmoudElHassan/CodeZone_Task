@@ -1,6 +1,6 @@
 # CodeZone_Task
 
-## Project using:
+## Tools:
 * [ASP.Net MVC](https://dotnet.microsoft.com/en-us/apps/aspnet/mvc)
 * [Entity Framework 8.0](https://learn.microsoft.com/en-us/aspnet/entity-framework)
 * [SQL Server 18](https://learn.microsoft.com/en-us/sql/?view=sql-server-ver16)
