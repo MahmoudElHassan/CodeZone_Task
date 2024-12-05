@@ -126,20 +126,20 @@ namespace CodeZone_Task.Controllers
 
                     if (ModelState.IsValid)
                     {
-                        foreach (var product in forigenKeysDB)
-                        {
-                            if (product.Item_Id == purchase.Item_Id &&
-                                product.Store_Id == purchase.Store_Id)
-                            {
-                                ViewBag.Message = string.Format("This Purchase already Exists",
-                                    DateTime.Now.ToString());
-                                return View();
-                            }
-                        }
-
-                        if (purchaseDB.Item_Id != purchase.Item_Id &&
+                        if (purchaseDB.Item_Id != purchase.Item_Id ||
                             purchaseDB.Store_Id != purchase.Store_Id)
                         {
+                            foreach (var product in forigenKeysDB)
+                            {
+                                if (product.Item_Id == purchase.Item_Id &&
+                                    product.Store_Id == purchase.Store_Id)
+                                {
+                                    ViewBag.Message = string.Format("This Purchase already Exists",
+                                        DateTime.Now.ToString());
+                                    return View();
+                                }
+                            }
+
                             var newDB = new Purchase()
                             {
                                 Store_Id = purchase.Store_Id,
