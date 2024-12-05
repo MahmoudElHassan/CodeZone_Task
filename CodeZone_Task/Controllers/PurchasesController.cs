@@ -60,8 +60,22 @@ namespace CodeZone_Task.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Store_Id,Item_Id,Stock")] Purchase purchase)
         {
+            var forigenKeysDB = _context.Purchases.Where(x => x.Item_Id == purchase.Item_Id
+            && x.Store_Id == purchase.Store_Id).ToList();
+
             if (ModelState.IsValid)
             {
+                foreach (var product in forigenKeysDB)
+                {
+                    if (product.Item_Id == purchase.Item_Id &&
+                        product.Store_Id == purchase.Store_Id)
+                    {
+                        ViewBag.Message = string.Format("This Purchase already Exists",
+                            DateTime.Now.ToString());
+                        return View();
+                    }
+                }
+
                 _context.Add(purchase);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -107,10 +121,44 @@ namespace CodeZone_Task.Controllers
             {
                 try
                 {
-                    purchaseDB.Stock += purchase.New_Stock;
+                    var forigenKeysDB = _context.Purchases.Where(x => x.Item_Id == purchase.Item_Id
+                        && x.Store_Id == purchase.Store_Id).ToList();
 
-                    _context.Update(purchaseDB);
-                    await _context.SaveChangesAsync();
+                    if (ModelState.IsValid)
+                    {
+                        foreach (var product in forigenKeysDB)
+                        {
+                            if (product.Item_Id == purchase.Item_Id &&
+                                product.Store_Id == purchase.Store_Id)
+                            {
+                                ViewBag.Message = string.Format("This Purchase already Exists",
+                                    DateTime.Now.ToString());
+                                return View();
+                            }
+                        }
+
+                        if (purchaseDB.Item_Id != purchase.Item_Id &&
+                            purchaseDB.Store_Id != purchase.Store_Id)
+                        {
+                            var newDB = new Purchase()
+                            {
+                                Store_Id = purchase.Store_Id,
+                                Item_Id = purchase.Item_Id,
+                                Stock = purchase.New_Stock
+                            };
+
+                            _context.Add(newDB);
+                            await _context.SaveChangesAsync();
+                            return RedirectToAction(nameof(Index));
+                        }
+
+                        purchaseDB.Item_Id = purchase.Item_Id;
+                        purchaseDB.Store_Id = purchase.Store_Id;
+                        purchaseDB.Stock += purchase.New_Stock;
+
+                        _context.Update(purchaseDB);
+                        await _context.SaveChangesAsync();
+                    }
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -125,8 +173,8 @@ namespace CodeZone_Task.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["Item_Id"] = new SelectList(_context.Items, "Id", "ItemName", purchase.Item_Id);
-            ViewData["Store_Id"] = new SelectList(_context.Stores, "Id", "StoreName", purchase.Store_Id);
+            //ViewData["Item_Id"] = new SelectList(_context.Items, "Id", "ItemName", purchase.Item_Id);
+            //ViewData["Store_Id"] = new SelectList(_context.Stores, "Id", "StoreName", purchase.Store_Id);
             ViewData["New_Stock"] = new SelectList(_context.Stores, "Id", "New_Stock", purchase.New_Stock);
             return View(purchase);
         }
@@ -143,6 +191,7 @@ namespace CodeZone_Task.Controllers
                 .Include(p => p.Items)
                 .Include(p => p.Stores)
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (purchase == null)
             {
                 return NotFound();
